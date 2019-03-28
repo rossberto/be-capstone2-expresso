@@ -15,6 +15,26 @@ function validateItem(req, res, next) {
   }
 }
 
+function getItemValues(req, res, next) {
+  const item = req.body.menuItem;
+
+  const values = {
+    $name: item.name,
+    $description: item.description,
+    $inventory: item.inventory,
+    $price: item.price
+  }
+
+  if (req.itemId) {
+    values.$id = req.itemId;
+  } else {
+    values.$menu_id = req.menuId;
+  }
+
+  req.values = values;
+  next();
+}
+
 /***** Menu-Items Routes Methods *****/
 itemsRouter.get('/', (req, res, next) => {
   console.log();
@@ -25,21 +45,13 @@ itemsRouter.get('/', (req, res, next) => {
   });
 });
 
-itemsRouter.post('/', validateItem, (req, res, next) => {
+itemsRouter.post('/', validateItem, getItemValues, (req, res, next) => {
   const reqItem = req.body.menuItem;
 
   const sql = 'INSERT INTO MenuItem ' +
               '(name, description, inventory, price, menu_id) VALUES ' +
               '($name, $description, $inventory, $price, $menu_id)';
-  const values = {
-    $name: reqItem.name,
-    $description: reqItem.description,
-    $inventory: reqItem.inventory,
-    $price: reqItem.price,
-    $menu_id: req.menuId
-  }
-
-  db.run(sql, values, function(err) {
+  db.run(sql, req.values, function(err) {
     if (err) throw err;
 
     db.get(`SELECT * FROM MenuItem WHERE id=${this.lastID}`, (err, row) => {
@@ -64,22 +76,14 @@ itemsRouter.param('menuItemId', (req, res, next, id) => {
   });
 });
 
-itemsRouter.put('/:menuItemId', validateItem, (req, res, next) => {
+itemsRouter.put('/:menuItemId', validateItem, getItemValues, (req, res, next) => {
   const reqItem = req.body.menuItem;
 
   const sql = 'UPDATE MenuItem SET ' +
               'name=$name, description=$description,' +
               'inventory=$inventory, price=$price ' +
               'WHERE id=$id';
-  const values = {
-    $name: reqItem.name,
-    $description: reqItem.description,
-    $inventory: reqItem.inventory,
-    $price: reqItem.price,
-    $id: req.itemId
-  }
-
-  db.run(sql, values, err => {
+  db.run(sql, req.values, err => {
     if (err) throw err;
 
     db.get(`SELECT * FROM MenuItem WHERE id=${req.itemId}`, (err, row) => {

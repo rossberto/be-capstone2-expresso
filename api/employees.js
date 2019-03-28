@@ -6,13 +6,31 @@ const db = new sqlite3.Database(process.env.TEST_DATABASE || './database.sqlite'
 
 /***** Auxiliar Functions *****/
 function validateEmployee(req, res, next) {
-  const newEmployee = req.body.employee;
+  const reqEmployee = req.body.employee;
 
-  if (newEmployee.name && newEmployee.position && newEmployee.wage) {
+  if (reqEmployee.name && reqEmployee.position && reqEmployee.wage) {
+    //req.values = getEmployeeValues(reqEmployee, req.employeeId);
     next();
   } else {
     res.status(400).send();
   }
+}
+
+function getEmployeeValues(req, res, next) {
+  const employee = req.body.employee;
+
+  const values = {
+    $name: employee.name,
+    $position: employee.position,
+    $wage: employee.wage
+  };
+
+  if (req.employeeId) {
+    values.$id = req.employeeId;
+  }
+
+  req.values = values;
+  next();
 }
 
 /***** Employee Routes Methods *****/
@@ -25,18 +43,12 @@ employeesRouter.get('/', (req, res, next) => {
   });
 });
 
-employeesRouter.post('/', validateEmployee, (req, res, next) => {
-  console.log('POST employee command received');
+employeesRouter.post('/', validateEmployee, getEmployeeValues, (req, res, next) => {
   const newEmployee = req.body.employee;
 
   const sql = 'INSERT INTO Employee (name, position, wage) ' +
             'VALUES ($name, $position, $wage)';
-  const values = {
-    $name: newEmployee.name,
-    $position: newEmployee.position,
-    $wage: newEmployee.wage
-  };
-  db.run(sql, values, function(err) {
+  db.run(sql, req.values, function(err) {
     if (err) throw err;
 
     db.get(`SELECT * FROM Employee WHERE id=${this.lastID}`, (err, row) => {
@@ -63,11 +75,10 @@ employeesRouter.param('employeeId', (req, res, next, employeeId) => {
 });
 
 employeesRouter.get('/:employeeId', (req, res, next) => {
-  const reqEmployee = req.employee;
-  res.send({employee: reqEmployee});
+  res.send({employee: req.employee});
 });
 
-employeesRouter.put('/:employeeId', validateEmployee, (req, res, next) => {
+employeesRouter.put('/:employeeId', validateEmployee, getEmployeeValues, (req, res, next) => {
   const updatedEmployee = req.body.employee;
 
   const sql = 'UPDATE Employee SET ' +
@@ -75,14 +86,7 @@ employeesRouter.put('/:employeeId', validateEmployee, (req, res, next) => {
               'position=$position, ' +
               'wage=$wage ' +
               'WHERE id=$id';
-  const values = {
-    $name: updatedEmployee.name,
-    $position: updatedEmployee.position,
-    $wage: updatedEmployee.wage,
-    $id: req.employeeId
-  }
-
-  db.run(sql, values, function(err) {
+  db.run(sql, req.values, function(err) {
     if (err) throw err;
 
     db.get(`SELECT * FROM Employee WHERE id=${req.employeeId}`, (err, row) => {

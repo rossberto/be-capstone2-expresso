@@ -9,17 +9,29 @@ function validateTimesheet(req, res, next) {
   const newTimesheet = req.body.timesheet;
 
   if (newTimesheet.hours && newTimesheet.rate && newTimesheet.date) {
-    const values = {
-      $hours: newTimesheet.hours,
-      $rate: newTimesheet.rate,
-      $date: newTimesheet.date,
-      $employeeId: req.employeeId
-    };
-    req.values = values;
     next();
   } else {
     res.status(400).send();
   }
+}
+
+function getTimesheetValues(req, res, next) {
+  const timesheet = req.body.timesheet;
+
+  const values = {
+    $hours: timesheet.hours,
+    $rate: timesheet.rate,
+    $date: timesheet.date
+  }
+
+  if (req.timesheetId) {
+    values.$timesheetId = req.timesheetId;
+  } else {
+    values.$employeeId = req.employeeId;
+  }
+
+  req.values = values;
+  next();
 }
 
 /***** Timesheet Routes Methods *****/
@@ -32,19 +44,13 @@ timesheetsRouter.get('/', (req, res, next) => {
   });
 });
 
-timesheetsRouter.post('/', validateTimesheet, (req, res, next) => {
+timesheetsRouter.post('/', validateTimesheet, getTimesheetValues, (req, res, next) => {
   const newTimesheet = req.body.timesheet;
 
   const sql = 'INSERT INTO Timesheet (hours, rate, date, employee_id) ' +
               'VALUES ($hours, $rate, $date, $employeeId)';
-  const values = {
-    $hours: newTimesheet.hours,
-    $rate: newTimesheet.rate,
-    $date: newTimesheet.date,
-    $employeeId: req.employeeId
-  }
 
-  db.run(sql, values, function(err) {
+  db.run(sql, req.values, function(err) {
     if (err) throw err;
 
     db.get(`SELECT * FROM Timesheet WHERE id=${this.lastID}`, (err, row) => {
@@ -68,7 +74,7 @@ timesheetsRouter.param('timesheetId', (req, res, next, id) => {
   });
 });
 
-timesheetsRouter.put('/:timesheetId', validateTimesheet, (req, res, next) => {
+timesheetsRouter.put('/:timesheetId', validateTimesheet, getTimesheetValues, (req, res, next) => {
   const updatedTimesheet = req.body.timesheet;
 
   const sql = 'UPDATE Timesheet SET ' +
@@ -76,14 +82,8 @@ timesheetsRouter.put('/:timesheetId', validateTimesheet, (req, res, next) => {
               'rate=$rate, ' +
               'date=$date ' +
               'WHERE id=$timesheetId';
-  const values = {
-    $hours: updatedTimesheet.hours,
-    $rate: updatedTimesheet.rate,
-    $date: updatedTimesheet.date,
-    $timesheetId: req.timesheetId
-  };
 
-  db.run(sql, values, function(err) {
+  db.run(sql, req.values, function(err) {
     if (err) throw err;
 
     db.get(`SELECT * FROM Timesheet WHERE id=${req.timesheetId}`, (err, row) => {
@@ -105,23 +105,6 @@ timesheetsRouter.delete('/:timesheetId', (req, res, next) => {
     res.status(204).send();
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 module.exports = timesheetsRouter;

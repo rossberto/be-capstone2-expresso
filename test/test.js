@@ -299,7 +299,7 @@ xdescribe('MenuItem Table', function() {
   });
 });
 
-describe('GET /api/employees', function() {
+xdescribe('GET /api/employees', function() {
   before(function(done) {
     seed.seedEmployeeDatabase(done);
   });
@@ -323,7 +323,7 @@ describe('GET /api/employees', function() {
   });
 });
 
-describe('GET /api/employees/:id', function() {
+xdescribe('GET /api/employees/:id', function() {
   before(function(done) {
     seed.seedEmployeeDatabase(done);
   });
@@ -354,7 +354,7 @@ describe('GET /api/employees/:id', function() {
   });
 });
 
-describe('POST /api/employees', function() {
+xdescribe('POST /api/employees', function() {
   let newEmployee;
 
   beforeEach(function(done) {
@@ -426,7 +426,7 @@ describe('POST /api/employees', function() {
 });
 
 
-describe('PUT /api/employees/:id', function() {
+xdescribe('PUT /api/employees/:id', function() {
   let updatedEmployee;
 
   beforeEach(function(done) {
@@ -492,7 +492,7 @@ describe('PUT /api/employees/:id', function() {
   });
 });
 
-describe('DELETE /api/employees/:id', function() {
+xdescribe('DELETE /api/employees/:id', function() {
   beforeEach(function(done) {
     seed.seedEmployeeDatabase(done);
   });
@@ -567,7 +567,7 @@ describe('GET /api/employees/:employeeId/timesheets', function() {
       });
 });
 
-xdescribe('POST /api/employees/:employeeId/timesheets', function() {
+describe('POST /api/employees/:employeeId/timesheets', function() {
   let newTimesheet;
 
   beforeEach(function(done) {
@@ -639,7 +639,7 @@ xdescribe('POST /api/employees/:employeeId/timesheets', function() {
   });
 });
 
-xdescribe('PUT /api/employees/:employeeId/timesheets/:timesheetId', function() {
+describe('PUT /api/employees/:employeeId/timesheets/:timesheetId', function() {
   let updatedTimesheet;
 
   beforeEach(function(done) {
@@ -732,7 +732,7 @@ xdescribe('PUT /api/employees/:employeeId/timesheets/:timesheetId', function() {
   });
 });
 
-xdescribe('DELETE /api/employees/:employeeId/timesheets/:timesheetId', function() {
+describe('DELETE /api/employees/:employeeId/timesheets/:timesheetId', function() {
   beforeEach(function(done) {
     seed.seedTimesheetDatabase(done);
   });

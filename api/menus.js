@@ -15,7 +15,7 @@ function validateMenu(req, res, next) {
 
 function checkItems(req, res, next) {
   db.all(`SELECT * FROM MenuItem WHERE menu_id=${req.menuId}`, (err, rows) => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     if (rows.length === 0) {
       next();
@@ -28,7 +28,7 @@ function checkItems(req, res, next) {
 /***** Menus Routes Methods *****/
 menusRouter.get('/', (req, res, next) => {
   db.all('SELECT * FROM Menu', (err, rows) => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     res.send({menus: rows});
   });
@@ -38,10 +38,10 @@ menusRouter.post('/', validateMenu, (req, res, next) => {
   const reqMenu = req.body.menu;
 
   db.run(`INSERT INTO Menu (title) VALUES ("${reqMenu.title}")`, function(err) {
-    if (err) throw err;
+    if (err) {next(err)}
 
     db.get(`SELECT * FROM Menu WHERE id=${this.lastID}`, (err, row) => {
-      if (err) throw err;
+      if (err) {next(err)}
 
       res.status(201).send({menu: row});
     });
@@ -50,7 +50,7 @@ menusRouter.post('/', validateMenu, (req, res, next) => {
 
 menusRouter.param('menuId', (req, res, next, id) => {
   db.get(`SELECT * FROM Menu WHERE id=${id}`, (err, row) => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     if (row) {
       req.menuId = id;
@@ -77,10 +77,10 @@ menusRouter.put('/:menuId', validateMenu, (req, res, next) => {
   }
 
   db.run(sql, values, err => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     db.get(`SELECT * FROM Menu WHERE id=${req.menuId}`, (err, row) => {
-      if (err) throw err;
+      if (err) {next(err)}
 
       res.send({menu: row});
     });
@@ -89,7 +89,7 @@ menusRouter.put('/:menuId', validateMenu, (req, res, next) => {
 
 menusRouter.delete('/:menuId', checkItems, (req, res, next) => {
   db.run(`DELETE FROM Menu WHERE id=${req.menuId}`, err => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     res.status(204).send();
   });

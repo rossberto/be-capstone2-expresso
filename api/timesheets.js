@@ -38,7 +38,7 @@ function getTimesheetValues(req, res, next) {
 timesheetsRouter.get('/', (req, res, next) => {
   const sql = 'SELECT * FROM Timesheet WHERE employee_id=$employeeId';
   db.all(sql, {$employeeId: req.employeeId}, (err, rows) => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     res.send({timesheets: rows});
   });
@@ -51,10 +51,10 @@ timesheetsRouter.post('/', validateTimesheet, getTimesheetValues, (req, res, nex
               'VALUES ($hours, $rate, $date, $employeeId)';
 
   db.run(sql, req.values, function(err) {
-    if (err) throw err;
+    if (err) {next(err)}
 
     db.get(`SELECT * FROM Timesheet WHERE id=${this.lastID}`, (err, row) => {
-      if (err) throw err;
+      if (err) {next(err)}
 
       res.status(201).send({timesheet: row});
     });
@@ -63,7 +63,7 @@ timesheetsRouter.post('/', validateTimesheet, getTimesheetValues, (req, res, nex
 
 timesheetsRouter.param('timesheetId', (req, res, next, id) => {
   db.get(`SELECT * FROM Timesheet WHERE id=${id}`, (err, row) => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     if (row) {
       req.timesheetId = id;
@@ -84,10 +84,10 @@ timesheetsRouter.put('/:timesheetId', validateTimesheet, getTimesheetValues, (re
               'WHERE id=$timesheetId';
 
   db.run(sql, req.values, function(err) {
-    if (err) throw err;
+    if (err) {next(err)}
 
     db.get(`SELECT * FROM Timesheet WHERE id=${req.timesheetId}`, (err, row) => {
-      if (err) throw err;
+      if (err) {next(err)}
 
       if (row) {
         res.send({timesheet: row});
@@ -100,7 +100,7 @@ timesheetsRouter.put('/:timesheetId', validateTimesheet, getTimesheetValues, (re
 
 timesheetsRouter.delete('/:timesheetId', (req, res, next) => {
   db.run(`DELETE FROM Timesheet WHERE id=${req.timesheetId}`, err => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     res.status(204).send();
   });

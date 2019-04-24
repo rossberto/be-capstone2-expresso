@@ -9,7 +9,6 @@ function validateEmployee(req, res, next) {
   const reqEmployee = req.body.employee;
 
   if (reqEmployee.name && reqEmployee.position && reqEmployee.wage) {
-    //req.values = getEmployeeValues(reqEmployee, req.employeeId);
     next();
   } else {
     res.status(400).send();
@@ -37,7 +36,7 @@ function getEmployeeValues(req, res, next) {
 employeesRouter.get('/', (req, res, next) => {
   const sql = 'SELECT * FROM Employee WHERE is_current_employee=1';
   db.all(sql, (err, rows) => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     res.send({employees: rows});
   });
@@ -49,10 +48,10 @@ employeesRouter.post('/', validateEmployee, getEmployeeValues, (req, res, next) 
   const sql = 'INSERT INTO Employee (name, position, wage) ' +
             'VALUES ($name, $position, $wage)';
   db.run(sql, req.values, function(err) {
-    if (err) throw err;
+    if (err) {next(err)}
 
     db.get(`SELECT * FROM Employee WHERE id=${this.lastID}`, (err, row) => {
-      if (err) throw err;
+      if (err) {next(err)}
 
       res.status(201).send({employee: row});
     });
@@ -62,7 +61,7 @@ employeesRouter.post('/', validateEmployee, getEmployeeValues, (req, res, next) 
 employeesRouter.param('employeeId', (req, res, next, employeeId) => {
   const sql = `SELECT * FROM Employee WHERE id=${employeeId}`;
   db.get(sql, (err, row) => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     if (row) {
       req.employeeId = employeeId;
@@ -87,10 +86,10 @@ employeesRouter.put('/:employeeId', validateEmployee, getEmployeeValues, (req, r
               'wage=$wage ' +
               'WHERE id=$id';
   db.run(sql, req.values, function(err) {
-    if (err) throw err;
+    if (err) {next(err)}
 
     db.get(`SELECT * FROM Employee WHERE id=${req.employeeId}`, (err, row) => {
-      if (err) throw err;
+      if (err) {next(err)}
 
       res.send({employee: row});
     });
@@ -103,10 +102,10 @@ employeesRouter.delete('/:employeeId', (req, res, next) => {
               'SET is_current_employee=0 ' +
               'WHERE id=$id';
   db.run(sql, {$id: req.employeeId}, err => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     db.get(`SELECT * FROM Employee WHERE id=${req.employeeId}`, (err, row) => {
-      if (err) throw err;
+      if (err) {next(err)}
 
       res.send({employee: row});
     });

@@ -39,7 +39,7 @@ function getItemValues(req, res, next) {
 itemsRouter.get('/', (req, res, next) => {
   console.log();
   db.all(`SELECT * FROM MenuItem WHERE menu_id=${req.menuId}`, (err, rows) => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     res.send({menuItems: rows});
   });
@@ -52,10 +52,10 @@ itemsRouter.post('/', validateItem, getItemValues, (req, res, next) => {
               '(name, description, inventory, price, menu_id) VALUES ' +
               '($name, $description, $inventory, $price, $menu_id)';
   db.run(sql, req.values, function(err) {
-    if (err) throw err;
+    if (err) {next(err)}
 
     db.get(`SELECT * FROM MenuItem WHERE id=${this.lastID}`, (err, row) => {
-      if (err) throw err;
+      if (err) {next(err)}
 
       res.status(201).send({menuItem: row});
     });
@@ -64,7 +64,7 @@ itemsRouter.post('/', validateItem, getItemValues, (req, res, next) => {
 
 itemsRouter.param('menuItemId', (req, res, next, id) => {
   db.get(`SELECT * FROM MenuItem WHERE id=${id}`, (err, row) => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     if (row) {
       req.itemId = id;
@@ -84,10 +84,10 @@ itemsRouter.put('/:menuItemId', validateItem, getItemValues, (req, res, next) =>
               'inventory=$inventory, price=$price ' +
               'WHERE id=$id';
   db.run(sql, req.values, err => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     db.get(`SELECT * FROM MenuItem WHERE id=${req.itemId}`, (err, row) => {
-      if (err) throw err;
+      if (err) {next(err)}
 
       res.send({menuItem: row});
     });
@@ -96,7 +96,7 @@ itemsRouter.put('/:menuItemId', validateItem, getItemValues, (req, res, next) =>
 
 itemsRouter.delete('/:menuItemId', (req, res, next) => {
   db.run(`DELETE FROM MenuItem WHERE id=${req.itemId}`, err => {
-    if (err) throw err;
+    if (err) {next(err)}
 
     res.status(204).send();
   });
